@@ -1,4 +1,69 @@
-# Bu fayl GitHub'ga yuklanganda, APK'ni AVTOMATIK RAVISHDA,
+# APK'ni GITHUB'NING O'Z SERVERIDA, uchinchi tomon Docker action'siz
+# to'g'ridan-to'g'ri buildozer bilan quramiz. Bu avvalgi usuldan
+# (ArtemSBulgakov/buildozer-action) FARQLI - u konteyner qurishda
+# eskirgan sozlamalar tufayli xato berayotgan edi.
+#
+# QAYERGA JOYLASHTIRISH: sizning-repo/.github/workflows/build.yml
+# (eski build.yml faylini AYNAN SHU FAYL bilan ALMASHTIRING)
+
+name: APK qurish
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # 20.04 ATAYLAB tanlangan - Android qurish vositalari talab qiladigan
+    # ba'zi eski kutubxonalar (masalan libtinfo5) faqat shu versiyada bor
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Kodni yuklab olish
+        uses: actions/checkout@v4
+
+      - name: Python o'rnatish
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Tizim kutubxonalarini o'rnatish
+        run: |
+          sudo apt update
+          sudo apt install -y \
+            git zip unzip openjdk-17-jdk \
+            autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
+            cmake libffi-dev libssl-dev \
+            automake build-essential libltdl-dev \
+            libgdbm-dev libgdbm6
+
+      - name: Buildozer va Cython o'rnatish
+        run: |
+          pip install --upgrade pip
+          pip install buildozer==1.5.0 cython==0.29.36 virtualenv
+
+      - name: APK qurish (bu 15-25 daqiqa davom etishi mumkin)
+        run: |
+          yes | buildozer android debug 2>&1 | tee buildozer_log.txt
+
+      - name: Agar xato bo'lsa - to'liq logni saqlash
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: buildozer-log
+          path: |
+            buildozer_log.txt
+            .buildozer/android/platform/build-*/build.log
+          if-no-files-found: ignore
+
+      - name: Tayyor APK'ni saqlash
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xotira-ai-apk
+          path: bin/*.apk# Bu fayl GitHub'ga yuklanganda, APK'ni AVTOMATIK RAVISHDA,
 # GitHub'ning bepul serverlarida quradi - sizning telefoningizda
 # hech qanday og'ir dastur o'rnatish shart emas.
 #
