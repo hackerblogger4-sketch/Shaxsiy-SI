@@ -1,0 +1,39 @@
+# Bu fayl GitHub'ga yuklanganda, APK'ni AVTOMATIK RAVISHDA,
+# GitHub'ning bepul serverlarida quradi - sizning telefoningizda
+# hech qanday og'ir dastur o'rnatish shart emas.
+#
+# QAYERGA JOYLASHTIRISH KERAK (papka tuzilishi MUHIM):
+#   sizning-repo/
+#     ├── main.py
+#     ├── ai_chatbot.py
+#     ├── buildozer.spec
+#     └── .github/
+#           └── workflows/
+#                 └── build.yml   <- AYNAN SHU FAYL, aynan shu joyda
+
+name: APK qurish
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:   # "Actions" bo'limidan qo'lda ham ishga tushirish mumkin
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Kodni yuklab olish
+        uses: actions/checkout@v4
+
+      - name: Buildozer bilan APK qurish
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
+        with:
+          command: buildozer android debug
+          buildozer_version: stable
+
+      - name: Tayyor APK'ni saqlash (yuklab olish uchun)
+        uses: actions/upload-artifact@v4
+        with:
+          name: xotira-ai-apk
+          path: ${{ steps.buildozer.outputs.filename }}
