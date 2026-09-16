@@ -22,6 +22,7 @@ from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.utils import platform
 
 import ai_chatbot as backend
 
@@ -30,11 +31,12 @@ class XotiraAIApp(App):
     title = "Xotira AI"
 
     def build(self):
-        # ANDROID UCHUN ENG MUHIM QATOR:
-        # Xotira fayllarini ilovaning O'ZIGA TEGISHLI, ruxsat so'ramaydigan
-        # ichki papkasida saqlaymiz (user_data_dir - Android buni avtomatik
-        # ta'minlaydi, "Fayllarga kirish" ruxsatisiz ham ishlaydi).
-        xotira_yoli = os.path.join(self.user_data_dir, "xotira_data")
+        # ANDROID/OBB PAPKASINI ANIQLASH:
+        # Bu - ilovaga tegishli, lekin TASHQI (ochiq) xotiradagi maxsus papka.
+        # Ruxsat so'ramaydi (Android buni ilovaning "o'ziniki" deb biladi),
+        # lekin Android 11+ da boshqa fayl menejerlari uni ko'ra olmasligi
+        # mumkin (bu Android'ning o'zining maxfiylik cheklovi).
+        xotira_yoli = self._xotira_papkasini_aniqla()
         backend.bazani_ornat(xotira_yoli)
         backend.eski_formatdan_kochir()
         backend.fayllarni_avtomatik_aniqlash()
@@ -112,6 +114,26 @@ class XotiraAIApp(App):
         asosiy.add_widget(self.holat_label)
 
         return asosiy
+
+    def _xotira_papkasini_aniqla(self):
+        """Android qurilmada Android/obb/<paket_nomi>/xotira_data papkasini
+        qaytaradi. Agar biror sababdan bu ishlamasa (masalan, kompyuterda
+        sinab ko'rilayotgan bo'lsa, yoki Android OBB'ga ruxsat bermasa),
+        xavfsiz variant sifatida ilovaning ichki papkasiga qaytadi -
+        shunda ilova baribir ISHLASHDAN TO'XTAMAYDI."""
+        if platform == "android":
+            try:
+                from jnius import autoclass
+                PythonActivity = autoclass("org.kivy.android.PythonActivity")
+                faoliyat = PythonActivity.mActivity
+                obb_papka = faoliyat.getObbDir().getAbsolutePath()
+                return os.path.join(obb_papka, "xotira_data")
+            except Exception as xato:
+                print(f"⚠️ OBB papkasiga kira olmadim ({xato}), ichki xotiraga o'tamiz.")
+                return os.path.join(self.user_data_dir, "xotira_data")
+        else:
+            # Android emas (masalan, siz kompyuteringizda sinab ko'ryapsiz)
+            return os.path.join(self.user_data_dir, "xotira_data")
 
     def _holat_matni(self):
         return f"{len(backend.barcha_xotiralar())} ta ma'lumot xotirada"
