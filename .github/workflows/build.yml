@@ -15,9 +15,10 @@ on:
 
 jobs:
   build:
-    # 20.04 ATAYLAB tanlangan - Android qurish vositalari talab qiladigan
-    # ba'zi eski kutubxonalar (masalan libtinfo5) faqat shu versiyada bor
-    runs-on: ubuntu-20.04
+    # 22.04 ISHLATAMIZ - 20.04 GitHub tomonidan 2025 yil aprelida
+    # BUTUNLAY OLIB TASHLANGAN, shuning uchun u bilan ish "Navbatda"
+    # holatda ABADIY qotib qoladi (hech qanday runner mos kelmaydi).
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Kodni yuklab olish
@@ -34,10 +35,11 @@ jobs:
           sudo apt install -y \
             git zip unzip openjdk-17-jdk \
             autoconf libtool pkg-config \
-            zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 \
+            zlib1g-dev libncurses-dev libncursesw5-dev \
             cmake libffi-dev libssl-dev \
             automake build-essential libltdl-dev \
-            libgdbm-dev libgdbm6
+            libgdbm-dev libgdbm6 \
+            lib32stdc++6 lib32z1
 
       - name: Buildozer va Cython o'rnatish
         run: |
@@ -63,7 +65,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: xotira-ai-apk
-          path: bin/*.apk# Bu fayl GitHub'ga yuklanganda, APK'ni AVTOMATIK RAVISHDA,
-# GitHub'ning bepul serverlarida quradi - sizning telefoningizda
-# hech qanday og'ir dastur o'rnatish shart emas.
-#
+          path: bin/*.apk
