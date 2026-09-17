@@ -48,6 +48,7 @@ jobs:
 
       - name: APK qurish (bu 15-25 daqiqa davom etishi mumkin)
         run: |
+          set -o pipefail
           yes | buildozer android debug 2>&1 | tee buildozer_log.txt
 
       - name: Agar xato bo'lsa - to'liq logni saqlash
